@@ -1,5 +1,7 @@
 #include "Digital_Output.h"
 
+//JUST TO TEST THING
+
 Digital_Output::Digital_Output(char number)
 {
 	number_ = number;
