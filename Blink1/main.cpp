@@ -1,4 +1,4 @@
-#include <wiringPi.h>
+#include "piproxy.h"
 #include <stdlib.h>
 #include <chrono>	
 #include <sstream>
@@ -9,43 +9,50 @@
 #include "Digital_Input.h"
 #include "Player.h"
 #include "Round.h"
+#include "json.hpp"
+#include <fstream>
+
+
+// for convenience
+using json = nlohmann::json;
 
 using namespace std;
 
-constexpr int led_player2 = 8;
-constexpr int state_led_pin = 9;
-constexpr int led_player1 = 7;
-
-constexpr int button_inter_1 = 0;
-constexpr int button_inter_2 = 2;
+int led_player2 = 8;
+int led_player1 = 7;
+int state_led_pin = 9;
+int button_inter_1 = 0;
+int button_inter_2 = 2;
 
 void on_button_1();
+void Game_In_Progress(int numofrounds, Digital_Output &player1_led, Digital_Output &player2_led, Digital_Output &state_led);
+void Print_Results();
 void on_button_2();
 
 //*******TIMETYPEDEF*******
-typedef std::chrono::_V2::system_clock::duration time_type;
+typedef std::chrono::system_clock::duration time_type;
 time_type time_now = std::chrono::system_clock::now().time_since_epoch();
-time_type zero_time = std::chrono::_V2::system_clock::duration::zero();
+time_type zero_time = std::chrono::system_clock::duration::zero();
 
-string play_round(Player, Player, int);
+string play_round(Player&, Player&, int);
 Player player1("Max");
 Player player2("Michael");
 
-/*
-Sehr geehrter Herr Faschiner,
 
-wir haben noch ein Problem bei unserer Auswertung des Interrupts.
-Wir Fragen ab ob "time_now = time_zero". Diese Werte sind im Debugger gleich und vom selben Typ.
-Allerdings geht es nicht in die If-Abfrage. Wir haben zwar lang probiert und versucht, jedoch keine Lösung gefunden.
-Vielleicht könnten Sie uns einen Tipp geben, wie wir das lösen könnten.
-
-Mit freundlichen Grüßen,
-Ralph Berghofer
-Simon Waldhuber
-*/
 
 int main(void)
 {
+	std::ifstream i("pins.json");
+	json j;
+	i >> j;
+
+	led_player2 = j["p2_led"].get<int>();
+	led_player1 = j["p1_led"].get<int>();
+	state_led_pin = j["state"].get<int>();
+	button_inter_1 = j["p1_button"].get<int>();
+	button_inter_2 = j["p2_button"].get<int>();
+
+	
 	wiringPiSetup();
 
 	Digital_Output player1_led = Digital_Output(led_player1);
@@ -93,6 +100,29 @@ int main(void)
 		}
 	}
 
+	Game_In_Progress(numofrounds, player1_led, player2_led, state_led);
+	Print_Results();
+
+	getchar();
+}
+
+void Print_Results()
+{
+
+	if (player1.read_wins() > player2.read_wins())
+	{
+		std::cout << "The winner of the Game is: " << player1.get_name() << std::endl;
+	}
+	else
+	{
+		std::cout << "The winner of the Game is: " << player2.get_name() << std::endl;
+	}
+
+	std::cout << "Won Rounds:  \n" << player1.get_name() << ": " << player1.read_wins() << "\n" << player2.get_name() << ": " << player2.read_wins() << "\n" << std::endl;
+}
+
+void Game_In_Progress(int numofrounds, Digital_Output &player1_led, Digital_Output &player2_led, Digital_Output &state_led)
+{
 	//actual game in progress
 	for (int i = 0; i < numofrounds; i++)
 	{
@@ -128,7 +158,7 @@ int main(void)
 		{
 			player1.add_win();
 		}
-		else if(winner == player2.get_name())
+		else if (winner == player2.get_name())
 		{
 			player2.add_win();
 		}
@@ -173,11 +203,12 @@ void on_button_2()
 	}
 }
 
-string play_round(Player player1, Player player2, int current_rnd)
+string play_round(Player &player1, Player &player2, int current_rnd)
 {
 	Round Round(current_rnd);
 
 	delay(3000);
+
 
 	if ((player1.get_delta() == zero_time) && (player2.get_delta() == zero_time))		//Nobody pressed
 	{
@@ -211,7 +242,7 @@ string play_round(Player player1, Player player2, int current_rnd)
 	{
 		if (player2.get_delta() < zero_time)	//Player2 pressed wrong
 		{
-			if (player1.get_delta() < player2.get_delta())	//Player1 pressed earlier as Player2
+			if (player1.get_delta() > player2.get_delta())	//Player1 pressed earlier as Player2
 			{
 				Round.set_winner(player2.get_name());
 			}

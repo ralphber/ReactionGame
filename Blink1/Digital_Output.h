@@ -1,6 +1,6 @@
 #pragma once
 
-#include <wiringPi.h>
+#include "piproxy.h"
 
 class Digital_Output
 {

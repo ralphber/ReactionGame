@@ -6,7 +6,7 @@
 
 class Round
 {
-	using duration = std::chrono::_V2::system_clock::duration;
+	using duration = std::chrono::system_clock::duration;
 
 public:
 
@@ -16,6 +16,6 @@ public:
 	std::string get_winner() const;
 
 private:
-	int roundnum_; // MFA never used
+	int roundnum_; 
 	std::string winner_;
 };

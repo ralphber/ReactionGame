@@ -56,12 +56,19 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="Round.cpp" />
+    <ClCompile Include="winpi.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Digital_Input.h" />
     <ClInclude Include="Digital_Output.h" />
+    <ClInclude Include="json.hpp" />
+    <ClInclude Include="winpi.h" />
+    <ClInclude Include="piproxy.h" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="Round.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="pins.json" />
   </ItemGroup>
   <ItemDefinitionGroup />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

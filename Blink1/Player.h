@@ -5,7 +5,7 @@
 
 class Player
 {
-	using duration = std::chrono::_V2::system_clock::duration;
+	using duration = std::chrono::system_clock::duration;
 
 public:
 

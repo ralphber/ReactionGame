@@ -2,8 +2,8 @@
 
 Digital_Input::Digital_Input(int number)
 {
-	pinMode(number_, INPUT);
 	number_ = number;
+	pinMode(number_, INPUT);
 }
 
 int Digital_Input::get_number() const

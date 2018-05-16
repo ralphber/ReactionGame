@@ -1,0 +1,7 @@
+{
+	"p2_led" : 10,
+	"state" : 22,
+	"p1_led" : 17,
+	"p1_button" : 2,
+	"p2_button" : 27
+}
