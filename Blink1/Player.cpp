@@ -4,7 +4,8 @@ using duration = std::chrono::system_clock::duration;
 
 Player::Player(std::string name) :
 	name_{ name },
-	numofwins_ {0}
+	numofwins_ {0},
+	delta_{ std::chrono::system_clock::duration::zero() }
 {
 }
 
