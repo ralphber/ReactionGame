@@ -1,11 +1,12 @@
 #include "Player.h"
 
 using duration = std::chrono::system_clock::duration;
+duration zero = std::chrono::system_clock::duration::zero();
 
 Player::Player(std::string name) :
 	name_{ name },
-	numofwins_ {0},
-	delta_{ std::chrono::system_clock::duration::zero() }
+	numofwins_{ 0 },
+	delta_{ zero }
 {
 }
 
@@ -17,7 +18,6 @@ std::string Player::get_name() const
 void Player::add_win() 
 {
 	numofwins_++;
-	return;
 }
 
 int Player::read_wins() const
@@ -28,7 +28,6 @@ int Player::read_wins() const
 void Player::set_delta(duration delta)
 {
 	delta_ = delta;
-	return;
 }
 
 duration Player::get_delta() const
