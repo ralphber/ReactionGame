@@ -1,28 +1,26 @@
-#include "piproxy.h"
 #include <stdlib.h>
 #include <chrono>	
 #include <sstream>
 #include <string>
 #include <iostream>
+#include <fstream>
+#include <vector>
 
 #include "Digital_Output.h"
 #include "Digital_Input.h"
 #include "Player.h"
 #include "Round.h"
+#include "PinManager.h"
 #include "json.hpp"
-#include <fstream>
+#include "piproxy.h"
+
 
 // for convenience
 using json = nlohmann::json;
 
 using namespace std;
 
-int led_player2 = 8;
-int led_player1 = 7;
-int state_led_pin = 9;
-int button_inter_1 = 0;
-int button_inter_2 = 2;
-
+//******Prototypes******
 void on_button_1();
 void Game_In_Progress(int numofrounds, Digital_Output &player1_led, Digital_Output &player2_led, Digital_Output &state_led);
 void Get_and_Print_Winner(int i);
@@ -40,13 +38,27 @@ typedef std::chrono::system_clock::duration time_type;
 time_type time_now = std::chrono::system_clock::now().time_since_epoch();
 time_type zero_time = std::chrono::system_clock::duration::zero();
 
+//******Global Variables (classes)******
 string play_round(Player&, Player&, int);
 Player player1("Max");
 Player player2("Michael");
 
+//******our pin_config for pi******
+int led_player2 = 8;
+int led_player1 = 7;
+int state_led_pin = 9;
+int button_inter_1 = 0;
+int button_inter_2 = 2;
 
+
+std::vector<int> PinManager::pins_;
+
+
+//******MainProgramm******
 int main(void)
 {
+	PinManager pins;
+
 	std::ifstream i("pins.json");
 	json j;
 	i >> j;
@@ -54,14 +66,34 @@ int main(void)
 	Get_Numbers_of_Json(j);
 
 	wiringPiSetup();
-
+	
 	Digital_Output player1_led = Digital_Output(led_player1);
 	Digital_Output player2_led = Digital_Output(led_player2);
 	Digital_Output state_led = Digital_Output(state_led_pin);
 
 	Digital_Input button1 = Digital_Input(button_inter_1);
 	Digital_Input button2 = Digital_Input(button_inter_2);
+	
+	/*
+	pins.set_pin(led_player2);
+	pins.set_pin(state_led_pin);
+	pins.set_pin(button_inter_1);
+	pins.set_pin(button_inter_2);
+	
+	pins.get_pins_forgiven();
+	
 
+	pins.pin_state(led_player2);
+
+	pins.free_pin(led_player2);
+
+	pins.pin_state(led_player2);
+
+	pins.get_pins_forgiven();
+	*/
+
+
+	
 	Led_Off(player1_led, player2_led, state_led);
 
 	//*****ACTIVATE INTERRUPTS*****
@@ -69,7 +101,6 @@ int main(void)
 	wiringPiISR(button_inter_2, INT_EDGE_RISING, &on_button_2);
 
 	//*****************INPUT*****************
-
 	string input;
 	string name1, name2;
 	int numofrounds = -1;
@@ -115,6 +146,7 @@ void Get_Player_and_Rounds(int &numofrounds, std::string &input, std::string &na
 
 			std::cout << "The contestants are: " << name1 << " vs. " << name2 << "! " << std::endl;
 			std::cout << "They will be playing " << numofrounds << " rounds! " << std::endl;
+			std::cout << "Player 1: F1        Player 2: F2" << std::endl;
 			player1.set_name(name1);
 			player2.set_name(name2);
 		}
@@ -150,7 +182,6 @@ void Game_In_Progress(int numofrounds, Digital_Output &player1_led, Digital_Outp
 		state_led.set_on_off(HIGH);	//START TO PRESS
 		time_now = std::chrono::system_clock::now().time_since_epoch();	//nanoseconds
 		std::cout << "PRESS" << std::endl;
-		std::cout << "Player 1: F1 ____ Player 2: F2" << std::endl;
 
 		Get_and_Print_Winner(i);
 	}
