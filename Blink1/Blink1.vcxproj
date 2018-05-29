@@ -54,6 +54,7 @@
     <ClCompile Include="Digital_Input.cpp" />
     <ClCompile Include="Digital_Output.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="PinManager.cpp" />
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="Round.cpp" />
     <ClCompile Include="winpi.cpp" />
@@ -62,6 +63,7 @@
     <ClInclude Include="Digital_Input.h" />
     <ClInclude Include="Digital_Output.h" />
     <ClInclude Include="json.hpp" />
+    <ClInclude Include="PinManager.h" />
     <ClInclude Include="winpi.h" />
     <ClInclude Include="piproxy.h" />
     <ClInclude Include="Player.h" />

@@ -12,9 +12,6 @@
 #include "json.hpp"
 #include <fstream>
 
-//changed something
-
-
 // for convenience
 using json = nlohmann::json;
 
@@ -28,8 +25,15 @@ int button_inter_2 = 2;
 
 void on_button_1();
 void Game_In_Progress(int numofrounds, Digital_Output &player1_led, Digital_Output &player2_led, Digital_Output &state_led);
+void Get_and_Print_Winner(int i);
+void New_Round_State(Digital_Output & player1_led, Digital_Output & player2_led, Digital_Output & state_led);
+void Random_Delay();
+void Status_Update(Digital_Output & state_led);
 void Print_Results();
+void Get_Player_and_Rounds(int &numofrounds, std::string &input, std::string &name1, std::string &name2);
+void Led_Off(Digital_Output &player1_led, Digital_Output &player2_led, Digital_Output &state_led);
 void on_button_2();
+void Get_Numbers_of_Json(json &j);
 
 //*******TIMETYPEDEF*******
 typedef std::chrono::system_clock::duration time_type;
@@ -41,20 +45,14 @@ Player player1("Max");
 Player player2("Michael");
 
 
-
 int main(void)
 {
 	std::ifstream i("pins.json");
 	json j;
 	i >> j;
 
-	led_player2 = j["p2_led"].get<int>();
-	led_player1 = j["p1_led"].get<int>();
-	state_led_pin = j["state"].get<int>();
-	button_inter_1 = j["p1_button"].get<int>();
-	button_inter_2 = j["p2_button"].get<int>();
+	Get_Numbers_of_Json(j);
 
-	
 	wiringPiSetup();
 
 	Digital_Output player1_led = Digital_Output(led_player1);
@@ -64,10 +62,7 @@ int main(void)
 	Digital_Input button1 = Digital_Input(button_inter_1);
 	Digital_Input button2 = Digital_Input(button_inter_2);
 
-	//*****EVERY LED OFF*****
-	player1_led.set_on_off(LOW);
-	player2_led.set_on_off(LOW);
-	state_led.set_on_off(LOW);
+	Led_Off(player1_led, player2_led, state_led);
 
 	//*****ACTIVATE INTERRUPTS*****
 	wiringPiISR(button_inter_1, INT_EDGE_RISING, &on_button_1);
@@ -75,13 +70,40 @@ int main(void)
 
 	//*****************INPUT*****************
 
-	//input before starting the game
-	std::cout << "Hello! Enter nicknames of Player 1 and Player 2 as well as how many rounds to play:" << std::endl;
-	std::cout << "--Player 1--   --Player 2--   --Number of rounds to play--" << std::endl;
-
-	string input; // MFA move declarations closer to usage
+	string input;
 	string name1, name2;
 	int numofrounds = -1;
+	Get_Player_and_Rounds(numofrounds, input, name1, name2);
+
+	Game_In_Progress(numofrounds, player1_led, player2_led, state_led);
+	Print_Results();
+
+	getchar();
+}
+
+void Get_Numbers_of_Json(json &j)
+{
+	led_player2 = j["p2_led"].get<int>();
+	led_player1 = j["p1_led"].get<int>();
+	state_led_pin = j["state"].get<int>();
+	button_inter_1 = j["p1_button"].get<int>();
+	button_inter_2 = j["p2_button"].get<int>();
+}
+
+void Led_Off(Digital_Output &player1_led, Digital_Output &player2_led, Digital_Output &state_led)
+{
+	//*****EVERY LED OFF*****
+	player1_led.set_on_off(LOW);
+	player2_led.set_on_off(LOW);
+	state_led.set_on_off(LOW);
+}
+
+void Get_Player_and_Rounds(int &numofrounds, std::string &input, std::string &name1, std::string &name2)
+{
+	//input before starting the game
+	std::cout << "-----------------------------------------------------------------------------------" << std::endl;
+	std::cout << "Hello! Enter nicknames of Player 1 and Player 2 as well as how many rounds to play:" << std::endl;
+	std::cout << "--Player 1--   --Player 2--   --Number of rounds to play--" << std::endl;
 
 	while (numofrounds < 0)
 	{
@@ -101,16 +123,10 @@ int main(void)
 			std::cout << "This was not a valid input!" << std::endl;
 		}
 	}
-
-	Game_In_Progress(numofrounds, player1_led, player2_led, state_led);
-	Print_Results();
-
-	getchar();
 }
 
 void Print_Results()
 {
-
 	if (player1.read_wins() > player2.read_wins())
 	{
 		std::cout << "The winner of the Game is: " << player1.get_name() << std::endl;
@@ -119,7 +135,6 @@ void Print_Results()
 	{
 		std::cout << "The winner of the Game is: " << player2.get_name() << std::endl;
 	}
-
 	std::cout << "Won Rounds:  \n" << player1.get_name() << ": " << player1.read_wins() << "\n" << player2.get_name() << ": " << player2.read_wins() << "\n" << std::endl;
 }
 
@@ -128,52 +143,70 @@ void Game_In_Progress(int numofrounds, Digital_Output &player1_led, Digital_Outp
 	//actual game in progress
 	for (int i = 0; i < numofrounds; i++)
 	{
-		std::cout << "New Round begins!" << std::endl;
-		time_now = zero_time;
-		player1_led.set_on_off(LOW);
-		player2_led.set_on_off(LOW);
-		state_led.set_on_off(LOW);
-		player1.set_delta(zero_time);
-		player2.set_delta(zero_time);
-
-
-		//***********STATUS UPDATE***********
-		for (int i = 0; i < 5; i++)
-		{
-			state_led.set_on_off(HIGH);
-			delay(200);
-			state_led.set_on_off(LOW);
-			delay(200);
-		}
-
-		int min_time = 5000;
-		int time_till_end = 5000;
-		int wait_time = (rand() % min_time + time_till_end); // is in the range 5s to 10s
-		delay(wait_time);
-
+		New_Round_State(player1_led, player2_led, state_led);
+		Status_Update(state_led);
+		Random_Delay();
 
 		state_led.set_on_off(HIGH);	//START TO PRESS
 		time_now = std::chrono::system_clock::now().time_since_epoch();	//nanoseconds
-		string winner = play_round(player1, player2, i);
+		std::cout << "PRESS" << std::endl;
+		std::cout << "Player 1: F1 ____ Player 2: F2" << std::endl;
 
-		if (winner == player1.get_name())
-		{
-			player1.add_win();
-		}
-		else if (winner == player2.get_name())
-		{
-			player2.add_win();
-		}
-		else
-		{
-			std::cout << "Nobody has won!" << std::endl;
-		}
-		//winnner
-		cout << "The winner of this round is " << winner << "!" << endl;
-		delay(2500);
+		Get_and_Print_Winner(i);
 	}
 }
 
+void Get_and_Print_Winner(int i)
+{
+	string winner = play_round(player1, player2, i);
+	if (winner == player1.get_name())
+	{
+		player1.add_win();
+	}
+	else if (winner == player2.get_name())
+	{
+		player2.add_win();
+	}
+	else
+	{
+		std::cout << "Nobody has won!" << std::endl;
+	}
+	//winnner
+	cout << "The winner of this round is " << winner << "!" << endl;
+	delay(2500);
+}
+
+void New_Round_State(Digital_Output & player1_led, Digital_Output & player2_led, Digital_Output & state_led)
+{
+	std::cout << "New Round begins!" << std::endl;
+	time_now = zero_time;
+	player1_led.set_on_off(LOW);
+	player2_led.set_on_off(LOW);
+	state_led.set_on_off(LOW);
+	player1.set_delta(zero_time);
+	player2.set_delta(zero_time);
+}
+
+void Random_Delay()
+{
+	//Random Delay between 5s and 10s
+	int min_time = 5000;
+	int time_till_end = 5000;
+	int wait_time = (rand() % min_time + time_till_end); // is in the range 5s to 10s
+	delay(wait_time);
+}
+
+void Status_Update(Digital_Output & state_led)
+{
+	//***********STATUS UPDATE***********
+	for (int i = 0; i < 5; i++)
+	{
+		state_led.set_on_off(HIGH);
+		delay(200);
+		state_led.set_on_off(LOW);
+		delay(200);
+	}
+}
 
 void on_button_1()
 {
@@ -208,9 +241,7 @@ void on_button_2()
 string play_round(Player &player1, Player &player2, int current_rnd)
 {
 	Round Round(current_rnd);
-
 	delay(3000);
-
 
 	if ((player1.get_delta() == zero_time) && (player2.get_delta() == zero_time))		//Nobody pressed
 	{
