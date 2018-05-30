@@ -14,7 +14,6 @@
 #include "json.hpp"
 #include "piproxy.h"
 
-
 // for convenience
 using json = nlohmann::json;
 
@@ -32,6 +31,7 @@ void Get_Player_and_Rounds(int &numofrounds, std::string &input, std::string &na
 void Led_Off(Digital_Output &player1_led, Digital_Output &player2_led, Digital_Output &state_led);
 void on_button_2();
 void Get_Numbers_of_Json(json &j);
+void Forgiven_Pins(PinManager &pins);
 
 //*******TIMETYPEDEF*******
 typedef std::chrono::system_clock::duration time_type;
@@ -51,9 +51,6 @@ int button_inter_1 = 0;
 int button_inter_2 = 2;
 
 
-std::vector<int> PinManager::pins_;
-
-
 //******MainProgramm******
 int main(void)
 {
@@ -64,7 +61,6 @@ int main(void)
 	i >> j;
 
 	Get_Numbers_of_Json(j);
-
 	wiringPiSetup();
 	
 	Digital_Output player1_led = Digital_Output(led_player1);
@@ -73,27 +69,11 @@ int main(void)
 
 	Digital_Input button1 = Digital_Input(button_inter_1);
 	Digital_Input button2 = Digital_Input(button_inter_2);
-	
-	/*
-	pins.set_pin(led_player2);
-	pins.set_pin(state_led_pin);
-	pins.set_pin(button_inter_1);
-	pins.set_pin(button_inter_2);
-	
-	pins.get_pins_forgiven();
-	
 
-	pins.pin_state(led_player2);
+	//*****Set Pins which are used*****
+	Forgiven_Pins(pins);
 
-	pins.free_pin(led_player2);
-
-	pins.pin_state(led_player2);
-
-	pins.get_pins_forgiven();
-	*/
-
-
-	
+	//*****Turn all LED's off*****
 	Led_Off(player1_led, player2_led, state_led);
 
 	//*****ACTIVATE INTERRUPTS*****
@@ -105,11 +85,19 @@ int main(void)
 	string name1, name2;
 	int numofrounds = -1;
 	Get_Player_and_Rounds(numofrounds, input, name1, name2);
-
 	Game_In_Progress(numofrounds, player1_led, player2_led, state_led);
 	Print_Results();
 
 	getchar();
+}
+
+void Forgiven_Pins(PinManager &pins)
+{
+	pins.set_pin(led_player1);
+	pins.set_pin(led_player2);
+	pins.set_pin(state_led_pin);
+	pins.set_pin(button_inter_1);
+	pins.set_pin(button_inter_2);
 }
 
 void Get_Numbers_of_Json(json &j)
@@ -123,7 +111,7 @@ void Get_Numbers_of_Json(json &j)
 
 void Led_Off(Digital_Output &player1_led, Digital_Output &player2_led, Digital_Output &state_led)
 {
-	//*****EVERY LED OFF*****
+	//*****Every LED off*****
 	player1_led.set_on_off(LOW);
 	player2_led.set_on_off(LOW);
 	state_led.set_on_off(LOW);
@@ -131,7 +119,7 @@ void Led_Off(Digital_Output &player1_led, Digital_Output &player2_led, Digital_O
 
 void Get_Player_and_Rounds(int &numofrounds, std::string &input, std::string &name1, std::string &name2)
 {
-	//input before starting the game
+	//*****input before starting the game*****
 	std::cout << "-----------------------------------------------------------------------------------" << std::endl;
 	std::cout << "Hello! Enter nicknames of Player 1 and Player 2 as well as how many rounds to play:" << std::endl;
 	std::cout << "--Player 1--   --Player 2--   --Number of rounds to play--" << std::endl;
@@ -159,13 +147,18 @@ void Get_Player_and_Rounds(int &numofrounds, std::string &input, std::string &na
 
 void Print_Results()
 {
+	//*****Print 
 	if (player1.read_wins() > player2.read_wins())
 	{
 		std::cout << "The winner of the Game is: " << player1.get_name() << std::endl;
 	}
-	else
+	else if(player1.read_wins() < player2.read_wins())
 	{
 		std::cout << "The winner of the Game is: " << player2.get_name() << std::endl;
+	}
+	else
+	{
+		std::cout << "The wins are equall!" << std::endl;
 	}
 	std::cout << "Won Rounds:  \n" << player1.get_name() << ": " << player1.read_wins() << "\n" << player2.get_name() << ": " << player2.read_wins() << "\n" << std::endl;
 }
@@ -202,7 +195,6 @@ void Get_and_Print_Winner(int i)
 	{
 		std::cout << "Nobody has won!" << std::endl;
 	}
-	//winnner
 	cout << "The winner of this round is " << winner << "!" << endl;
 	delay(2500);
 }
@@ -271,6 +263,7 @@ void on_button_2()
 
 string play_round(Player &player1, Player &player2, int current_rnd)
 {
+	////***********Detect the Winner***********
 	Round Round(current_rnd);
 	delay(3000);
 

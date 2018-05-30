@@ -21,5 +21,4 @@ public:
 	void pin_state(int number);
 
 	~PinManager() = default;
-
 };

@@ -21,6 +21,7 @@
   <ItemGroup>
     <ClCompile Include="..\Blink1\Digital_Input.cpp" />
     <ClCompile Include="..\Blink1\Digital_Output.cpp" />
+    <ClCompile Include="..\Blink1\PinManager.cpp" />
     <ClCompile Include="..\Blink1\Player.cpp" />
     <ClCompile Include="..\Blink1\Round.cpp" />
     <ClCompile Include="..\Blink1\winpi.cpp" />
@@ -29,6 +30,7 @@
   <ItemGroup>
     <ClInclude Include="..\Blink1\Digital_Input.h" />
     <ClInclude Include="..\Blink1\Digital_Output.h" />
+    <ClInclude Include="..\Blink1\PinManager.h" />
     <ClInclude Include="..\Blink1\piproxy.h" />
     <ClInclude Include="..\Blink1\Player.h" />
     <ClInclude Include="..\Blink1\Round.h" />
