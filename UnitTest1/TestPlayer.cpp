@@ -55,26 +55,14 @@ namespace ReactionGameTest
 
 		TEST_METHOD(TestSetDelta)
 		{
-			/*Player p1{ "Tester" };
-			duration  delta =  std::chrono::system_clock::now().time_since_epoch();
-			p1.set_delta(delta);
-
-			Assert::AreEqual(delta, p1.get_delta());
-			*/
-
-			/*
-			 * Funktioniert leider nicht. Es ist mir leider nicht gelungen die Variablen vom
-			 * Typ duration bzw. duration::rep auf einen anderen Typ zu casten oder die Funktion AreEqual mit duration zum Laufen zu bringen.
-			 * Error List:
-			 * Severity		Code	Description										File			Line
-		 	 * Error		C3690	expected a string literal, but found a user-defined string literal instead		cppunittestassert.h	66
-			 */
-
 			Player p1{ "Tester" };
 			auto flag = 0;
 
 			std::chrono::system_clock::duration const delta = std::chrono::system_clock::now().time_since_epoch();
 			p1.set_delta(delta);
+
+			Assert::IsTrue(delta == p1.get_delta()); // MFA alternative 1, probably the best one here
+			Assert::AreEqual(static_cast<long>(delta.count()), static_cast<long>(p1.get_delta().count())); // MFA alternative 2 - a bit more verbose
 
 			if (p1.get_delta() == delta)
 			{
